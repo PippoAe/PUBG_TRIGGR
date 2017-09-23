@@ -676,6 +676,11 @@ namespace PubgTriggr
         #endregion
 
         #region KillMessageCleaner
+        /// <summary>
+        /// Captures the Killmessage and cleans it. Triggers OBS source based on the string information.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Worker_KillMessageCleaner_DoWork(object sender, DoWorkEventArgs e)
         {
             //Get 20 Killmessages or at least as long as kill is active.
