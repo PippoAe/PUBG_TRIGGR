@@ -696,7 +696,7 @@ namespace PubgTriggr
             }
 
             //Clean KillMessage
-            Bitmap CleanedKillMessage = helpers.MakeDarkestImage(killmessages);
+            Bitmap CleanedKillMessage = helpers.MakeDarkestImage(killmessages,whiteReference);
             CleanedKillMessage.Save(@"./learning/KillMessages/" + myUniqueFileName + ".bmp");
 
             String OCRResult = helpers.OCRText(CleanedKillMessage);

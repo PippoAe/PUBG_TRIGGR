@@ -448,7 +448,7 @@ namespace PubgTriggr
 
         }
 
-        public Bitmap MakeDarkestImage(List<Bitmap> pictures)
+        public Bitmap MakeDarkestImage(List<Bitmap> pictures,Color whiteRef)
         {
             //New Bitmap for darkest and lightest Version
             Bitmap darkestPixels = new Bitmap(pictures[0].Width, pictures[0].Height);
@@ -484,7 +484,34 @@ namespace PubgTriggr
                     brightestPixels.SetPixel(x, y, pictures[brightestlayer].GetPixel(x, y));
                 }
             }
-            return darkestPixels;
+
+            //return darkestPixels;
+            //Clean by colordifference
+            Bitmap Cleaned = new Bitmap(pictures[0].Width, pictures[0].Height);
+
+            //Clean Saturation
+            for (int i = 0; i < Cleaned.Width; i++)
+            {
+                for (int j = 0; j < Cleaned.Height; j++)
+                {
+                    Color dark = darkestPixels.GetPixel(i, j);
+                    //Color bright = brightestPixels.GetPixel(i, j);
+
+                    int colordiffD = ColorDiff(whiteRef, dark);
+                    //int colordiffB = ColorDiff(whiteRef, bright);
+
+                    if (colordiffD < 200)
+                    {
+                        Cleaned.SetPixel(i, j, darkestPixels.GetPixel(i, j));
+                    }
+                    else
+                    {
+                        //Cleaned.SetPixel(i, j, darkestPixels.GetPixel(i, j));
+                        Cleaned.SetPixel(i, j, Color.Black);
+                    }
+                }
+            }
+            return Cleaned;
         }
 
         public string GetLocalIPAddress()
