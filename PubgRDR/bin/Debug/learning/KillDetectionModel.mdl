@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<DecisionTreeModel Hint="-1">
+  <Descriptor Type="ScreenData" Name="">
+    <Features Length="2">
+      <Property Name="Red" Type="Int32" Discrete="False" Start="0" />
+      <Property Name="White" Type="Int32" Discrete="False" Start="1" />
+    </Features>
+    <Label>
+      <Property Name="Kill" Type="Boolean" Discrete="True" Start="-1" />
+    </Label>
+  </Descriptor>
+  <Node Leaf="false" Value="0" Column="0" Name="Red" Gain="0.79804492373621239">
+    <Edges>
+      <Edge Min="0" Max="18.5" Discrete="false" Label="0 ≤ x &lt; 18.5">
+        <Child Leaf="false" Value="0" Column="1" Name="White" Gain="0.0043270915744125409">
+          <Edges>
+            <Edge Min="0" Max="50" Discrete="false" Label="0 ≤ x &lt; 50">
+              <Child Leaf="true" Value="-1" Column="0" Gain="0" />
+            </Edge>
+            <Edge Min="50" Max="100.01" Discrete="false" Label="50 ≤ x &lt; 100.01">
+              <Child Leaf="true" Value="-1" Column="0" Gain="0" />
+            </Edge>
+          </Edges>
+        </Child>
+      </Edge>
+      <Edge Min="18.5" Max="37.01" Discrete="false" Label="18.5 ≤ x &lt; 37.01">
+        <Child Leaf="true" Value="1" Column="0" Gain="0" />
+      </Edge>
+    </Edges>
+  </Node>
+</DecisionTreeModel>
