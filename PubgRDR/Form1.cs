@@ -176,7 +176,7 @@ namespace PubgTriggr
                 PeopleAlive = 0;
                 KillCount = 0;
                 tsLblAlive.Text = "Alive: 0";
-                tsLblAlive.Text = "Kills: 0";
+                tsLblKills.Text = "Kills: 0";
 
                 WriteToLog("Scanning for kills...");
                 btnStart.Text = "Stop";
@@ -437,14 +437,14 @@ namespace PubgTriggr
                 bNumberTop.Dispose();
                 bNumberCenter.Dispose();
 
-                if (iNumberCenter == iNumberTop)
-                {
+                //if (iNumberCenter == iNumberTop)
+                //{
                     //number has to be the same in two consecutive scans.
                     if (lastKillNumber != iNumberTop)
                         lastKillNumber = iNumberTop;
                     else
                         return iNumberTop;
-                }
+                //}
             }
             //If no sucess on getting killnumber, return 0
             return 0;
@@ -486,17 +486,17 @@ namespace PubgTriggr
             //If new KillNumber is bigger than the current Killcount and not bigger than the current Killcount+6, accept it as valid.
             if (e.ProgressPercentage > KillCount && e.ProgressPercentage < KillCount + 20)
             {
-                if (!Worker_KillMessageCleaner.IsBusy)
-                    Worker_KillMessageCleaner.RunWorkerAsync();
-                else
-                    Worker_KillMessageCleaner.CancelAsync();
-
                 KillCount = e.ProgressPercentage;
                 WriteToLog("New Kill detected!" + e.ProgressPercentage);
+
+                //Wait for KillMessageCleaner to end and start it again.
+                while (Worker_KillMessageCleaner.IsBusy)
+                {
+                    Worker_KillMessageCleaner.CancelAsync();
+                }
+                Worker_KillMessageCleaner.RunWorkerAsync();
+
                 tsLblKills.Text = "Kills: " + e.ProgressPercentage.ToString();
-
-                //Start KillCleaner until next Kill is detected
-
             }
         }
 
@@ -514,6 +514,51 @@ namespace PubgTriggr
 
         #endregion
 
+        #region KillMessageCleaner
+        /// <summary>
+        /// Captures the Killmessage and cleans it. Triggers OBS source based on the string information.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Worker_KillMessageCleaner_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //Acquire 30 Killmessages over 150ms.
+            List<Bitmap> killmessages = new List<Bitmap>();
+            int i = 0;
+            var myUniqueFileName = $@"{DateTime.Now.Ticks}";
+            while (!Worker_KillMessageCleaner.CancellationPending && i < 30)
+            {
+                Bitmap KillMessage = gcaptr.MakeScreenShot(rectKillMessage);
+                killmessages.Add(KillMessage);
+                i++;
+                Thread.Sleep(5);
+            }
+
+            //Clean KillMessage
+            Bitmap CleanedKillMessage = helpers.MakeDarkestImage(killmessages, whiteReference);
+
+            //Save it for later improving the OCR
+            CleanedKillMessage.Save(@"./learning/KillMessages/" + myUniqueFileName + ".bmp");
+
+            String OCRResult = helpers.OCRText(CleanedKillMessage);
+            Worker_KillMessageCleaner.ReportProgress(0, OCRResult);
+            e.Result = CleanedKillMessage;
+        }
+
+
+        private void Worker_KillMessageCleaner_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            WriteToLog((String)e.UserState);
+
+            //Trigger OBS Event
+            Task.Run(() => TriggerEvent((String)e.UserState));
+        }
+
+        private void Worker_KillMessageCleaner_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            pBKillMessage.Image = (Bitmap)e.Result;
+        }
+        #endregion
 
         #region Learning
         private void Worker_LearnThresholds_DoWork(object sender, DoWorkEventArgs e)
@@ -675,49 +720,7 @@ namespace PubgTriggr
         }
         #endregion
 
-        #region KillMessageCleaner
-        /// <summary>
-        /// Captures the Killmessage and cleans it. Triggers OBS source based on the string information.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Worker_KillMessageCleaner_DoWork(object sender, DoWorkEventArgs e)
-        {
-            //Get 20 Killmessages or at least as long as kill is active.
-            List<Bitmap> killmessages = new List<Bitmap>();
-            int i = 0;
-            var myUniqueFileName = $@"{DateTime.Now.Ticks}";
-            while (!Worker_KillMessageCleaner.CancellationPending && i < 20)
-            {
-                Bitmap KillMessage = gcaptr.MakeScreenShot(rectKillMessage);
-                killmessages.Add(KillMessage);
-                i++;
-                Thread.Sleep(10);
-            }
-
-            //Clean KillMessage
-            Bitmap CleanedKillMessage = helpers.MakeDarkestImage(killmessages,whiteReference);
-            CleanedKillMessage.Save(@"./learning/KillMessages/" + myUniqueFileName + ".bmp");
-
-            String OCRResult = helpers.OCRText(CleanedKillMessage);
-            Worker_KillMessageCleaner.ReportProgress(0, OCRResult);
-            e.Result = CleanedKillMessage;
-        }
-
-
-        private void Worker_KillMessageCleaner_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            WriteToLog((String)e.UserState);
-
-            //Trigger OBS Event
-            Task.Run(() => TriggerEvent((String)e.UserState));
-        }
-
-        private void Worker_KillMessageCleaner_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            pBKillMessage.Image = (Bitmap)e.Result;
-        }
-        #endregion
+        
 
         private void TriggerEvent(String killmessage)
         {

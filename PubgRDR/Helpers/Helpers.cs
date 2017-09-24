@@ -51,7 +51,7 @@ namespace PubgTriggr
         private Helpers()
         {
             //CreateOCR Engine
-            OCREngine = new TesseractEngine(@"./tessdata", "eng", EngineMode.TesseractOnly);
+            OCREngine = new TesseractEngine(@"./tessdata", "pubg", EngineMode.TesseractOnly);
             OCREngine.DefaultPageSegMode = PageSegMode.SingleBlock;
             OCREngine.SetVariable("tessedit_char_whitelist", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_");
             _generalColorThreshold = 100;
@@ -88,15 +88,8 @@ namespace PubgTriggr
 
             input = new String(input.Where(c => char.IsDigit(c)).ToArray());
 
+            int.TryParse(input, out returnvalue);
 
-            try
-            {
-                returnvalue = Convert.ToInt16(input);
-            }
-            catch (Exception e)
-            {
-
-            }
             return returnvalue;
         }
 
