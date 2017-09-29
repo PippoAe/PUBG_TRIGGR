@@ -428,23 +428,28 @@ namespace PubgTriggr
             //Try five times to scan Killnumber.
             while (timestried < 5)
             {
-                timestried++;
+                
                 Bitmap bNumberTop = helpers.CleanForColor(gcaptr.MakeScreenShot(rectTopKillNumber), whiteReference);
                 Bitmap bNumberCenter = helpers.CleanForColor(gcaptr.MakeScreenShot(rectCenterKillNumber), redReference);
 
                 int iNumberTop = helpers.OCRNumber(bNumberTop);
                 int iNumberCenter = helpers.OCRNumber(bNumberCenter);
+
                 bNumberTop.Dispose();
                 bNumberCenter.Dispose();
 
-                //if (iNumberCenter == iNumberTop)
-                //{
-                    //number has to be the same in two consecutive scans.
-                    if (lastKillNumber != iNumberTop)
+                timestried++;
+
+                if (iNumberCenter == iNumberTop)
+                {
+                   //number has to be the same in two consecutive scans.
+                if (lastKillNumber != iNumberTop)
+                    {
                         lastKillNumber = iNumberTop;
+                    }
                     else
                         return iNumberTop;
-                //}
+                }
             }
             //If no sucess on getting killnumber, return 0
             return 0;
@@ -732,6 +737,9 @@ namespace PubgTriggr
 
             if (killmessage.ToLower().Contains("bow"))
                 WriteToLog(obsRemote.TriggerSceneItem("E_CROSSBOW"));
+
+            if (killmessage.ToLower().Contains("r1") || killmessage.ToLower().Contains("1895"))
+                WriteToLog(obsRemote.TriggerSceneItem("E_REVOLVER"));
         }
     }
 }
